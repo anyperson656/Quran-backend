@@ -9,16 +9,22 @@ function signToken(user) {
 }
 
 function setSessionCookie(res, token) {
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 }
 
 function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME);
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
+  });
 }
 
 // Attaches req.user if a valid session cookie is present. Does not block
