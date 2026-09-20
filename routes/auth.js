@@ -14,7 +14,6 @@ const loginLimiter = rateLimit({
   message: { error: "Too many attempts. Please try again in a few minutes." },
 });
 
-// Stops someone from scripting hundreds of signups per minute.
 const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   limit: 5,
@@ -44,7 +43,7 @@ router.post("/signup", signupLimiter, async (req, res) => {
     const user = { id: result.rows[0].id, name: String(name).trim(), email: email.toLowerCase() };
     const token = signToken(user);
     setSessionCookie(res, token);
-    res.status(201).json({ user });
+    res.status(201).json({ user, token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Couldn't create your account. Please try again." });
@@ -65,7 +64,7 @@ router.post("/login", loginLimiter, async (req, res) => {
     const user = { id: row.id, name: row.name, email: row.email };
     const token = signToken(user);
     setSessionCookie(res, token);
-    res.json({ user });
+    res.json({ user, token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });

@@ -27,16 +27,23 @@ function clearSessionCookie(res) {
   });
 }
 
-// Attaches req.user if a valid session cookie is present. Does not block
-// the request if absent — routes decide for themselves whether auth is required.
+// Accepts a session from either a cookie OR an "Authorization: Bearer <token>"
+// header. The header path is what actually survives strict browser
+// third-party-cookie blocking between two different websites.
 function readSession(req, res, next) {
-  const token = req.cookies[COOKIE_NAME];
+  let token = req.cookies[COOKIE_NAME];
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+  }
   if (!token) return next();
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { id: payload.sub, email: payload.email, name: payload.name };
   } catch (e) {
-    // expired/invalid token - treat as logged out rather than erroring
+    // expired/invalid - treat as logged out
   }
   next();
 }
