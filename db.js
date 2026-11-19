@@ -36,6 +36,10 @@ async function init() {
       UNIQUE(user_id, surah_number, ayah_number)
     );
 
+    -- Add new columns safely outside CREATE TABLE
+    ALTER TABLE bookmarks ADD COLUMN IF NOT EXISTS mode VARCHAR(20) DEFAULT 'surah';
+    ALTER TABLE bookmarks ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'plain';
+
     CREATE TABLE IF NOT EXISTS progress (
       user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       surah_number INTEGER NOT NULL,
